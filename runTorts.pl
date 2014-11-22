@@ -10,8 +10,7 @@ my $inFile;
 my $outFile;
 
 GetOptions  (
-             "help|man" => \$help
-             ) || pod2usage(2);
+             "help|man" => \$help) || pod2usage(2);
 
 if ($help) {
     pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1);
@@ -27,7 +26,7 @@ print "**** Finished concatenating all read files ****\n\n";
 
 # Now make the adapter fastas we need for all of the adapter trimming
 print "**** Creating the adapter fasta files that will be used by Trimmomatic ****\n\n";
-system("perl /mnt/Data1/desertTorts/tortGen2/etortMakeAdapterFiles.pl --in /mnt/Data1/desertTorts/tortGen2/tortBarcodes.tsv --out /mnt/Data1/desertTorts/tortGen2/adapters");
+system("perl /mnt/Data1/desertTorts/tortGen2/etortMakeAdapterFiles.pl --in /mnt/Data1/desertTorts/tortGen2/tortBarcodes.tsv --out /mnt/Data1/desertTorts/adapters");
 print "**** Finished creating adapter fasta files ****\n\n";
 
 
