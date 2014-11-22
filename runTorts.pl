@@ -8,9 +8,14 @@ use Pod::Usage;
 my $help = 0;
 my $inFile;
 my $outFile;
+my $catReads;
+my $adapters;
 
 GetOptions  (
-             "help|man" => \$help) || pod2usage(2);
+             "help|man" => \$help,
+             "cat"      => \$catReads,
+             "adapters" => \$adapters,
+             ) || pod2usage(2);
 
 if ($help) {
     pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1);
@@ -20,14 +25,21 @@ my @samples = ("etort-1","etort-2","etort-3","etort-4","etort-5","etort-6","etor
 
 
 # First take all of the raw reads and concatenate them into sample-specific files
-print "**** Concatenating all of the raw read files into single R1 and R2 files for each sample ****\n";
-system("bash /mnt/Data1/desertTorts/tortGen2/tortCat.sh");
-print "**** Finished concatenating all read files ****\n\n";
+if ($catReads) {
+    print "**** Concatenating all of the raw read files into single R1 and R2 files for each sample ****\n";
+    system("bash /mnt/Data1/desertTorts/tortGen2/tortCat.sh");
+    print "**** Finished concatenating all read files ****\n\n";  
+}
+
+
 
 # Now make the adapter fastas we need for all of the adapter trimming
-print "**** Creating the adapter fasta files that will be used by Trimmomatic ****\n\n";
-system("perl /mnt/Data1/desertTorts/tortGen2/etortMakeAdapterFiles.pl --in /mnt/Data1/desertTorts/tortGen2/tortBarcodes.tsv --out /mnt/Data1/desertTorts/adapters");
-print "**** Finished creating adapter fasta files ****\n\n";
+if ($adapters) {
+    print "**** Creating the adapter fasta files that will be used by Trimmomatic ****\n\n";
+    system("perl /mnt/Data1/desertTorts/tortGen2/etortMakeAdapterFiles.pl --in /mnt/Data1/desertTorts/tortGen2/tortBarcodes.tsv --out /mnt/Data1/desertTorts/adapters");
+    print "**** Finished creating adapter fasta files ****\n\n";
+}
+
 
 
 
@@ -53,7 +65,8 @@ runTorts.pl ##CHANGE
 perl runTorts.pl
 
  Options:
-   -No options--hardcoding file paths, cutoff values, etc... for now
+   -cat         Concatenate all the individual read files into
+   -adapters    Make the adapter fasta files
 
 =head1 DESCRIPTION
 
