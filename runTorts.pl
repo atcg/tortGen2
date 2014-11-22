@@ -21,11 +21,14 @@ my @samples = ("etort-1","etort-2","etort-3","etort-4","etort-5","etort-6","etor
 
 
 # First take all of the raw reads and concatenate them into sample-specific files
+print "**** Concatenating all of the raw read files into single R1 and R2 files for each sample ****\n";
 system("bash /mnt/Data1/desertTorts/tortGen2/tortCat.sh");
+print "**** Finished concatenating all read files ****\n\n";
 
 # Now make the adapter fastas we need for all of the adapter trimming
-system("perl /mnt/Data1/desertTorts/tortGen2/etortMakeAdapterFiles.pl --in /mnt/Data1/desertTorts/tortGen2/tortBarcodes.tsv --out /mnt/Data1/desertTorts/tortGen2/adapters")
-
+print "**** Creating the adapter fasta files that will be used by Trimmomatic ****\n\n";
+system("perl /mnt/Data1/desertTorts/tortGen2/etortMakeAdapterFiles.pl --in /mnt/Data1/desertTorts/tortGen2/tortBarcodes.tsv --out /mnt/Data1/desertTorts/tortGen2/adapters");
+print "**** Finished creating adapter fasta files ****\n\n";
 
 
 
@@ -44,22 +47,18 @@ __END__
 
 =head1 NAME
 
-perl_template.pl ##CHANGE
+runTorts.pl ##CHANGE
 
 =head1 SYNOPSIS 
 
-perl SCRIPTNAME.pl --in <file> --out <file>
+perl runTorts.pl
 
  Options:
-   -in=s            Input filename
-   -out=s           Output filename
-   -help|man        Prints out documentation
-
+   -No options--hardcoding file paths, cutoff values, etc... for now
 
 =head1 DESCRIPTION
 
-Short description of the program.
-
-Can be multiple paragraphs.
+This script runs all the independent processes used in the processing of the desert
+tortoise data from raw reads to aligned sequence data.
 
 =cut
