@@ -9,11 +9,11 @@ my $help = 0;
 my $inFile;
 my $outFile;
 
-GetOptions  ("in=s"      => \$inFile,
-             "out=s"      => \$outFile,
-             "help|man" => \$help) || pod2usage(2);
+GetOptions  (
+             "help|man" => \$help
+             ) || pod2usage(2);
 
-if (!$inFile or !$outFile or $help) {
+if ($help) {
     pod2usage(-exitval => 0, -verbose => 2, -noperldoc => 1);
 }
 
