@@ -37,6 +37,51 @@ my @samples = ("etort-1","etort-2","etort-3","etort-4","etort-5","etort-6","etor
 
 
 
+if ($map) {
+    my $mappingDir = $outDir . "/mapping";
+    unless (-d $mappingDir) {
+        mkdir $mappingDir;
+    }
+    foreach my $readGroup (sort keys %sampleNamesHash) {
+        #my $singlesSamFile = $mappingDir . "/" . $readGroup . ".singlesAndJoined.sam";
+        my $singlesBamFile = $mappingDir . "/" . $readGroup . ".singlesAndJoined.bam";
+        #my $pairedSamFile = $mappingDir . "/" . $readGroup . ".paired.sam";
+        my $pairedBamFile = $mappingDir . "/" . $readGroup . ".paired.bam";
+        my $mergedBamFile = $mappingDir . "/" . $readGroup . "_merged.bam";
+        my $reads1 = $fqjDir . "/" . $readGroup . "_trimmed_fqj.un1.fastq";
+        my $reads2 = $fqjDir . "/" . $readGroup . "_trimmed_fqj.un2.fastq";
+        my $readsSingles = $fqjDir . "/" . $readGroup . "_combinedJoinedAndSingles.fastq";
+        system("bwa mem -t $threadsMax -M $reference $readsSingles | samtools view -@ $threadsMax -bS - > $singlesBamFile");
+        system("bwa mem -t $threadsMax -M $reference $reads1 $reads2 | samtools view -@ $threadsMax -bS - > $pairedBamFile");
+        
+        #system("samtools view -@ 8 -bS $singlesSamFile > $singlesBamFile");
+        #system("samtools view -@ 8 -bS $pairedSamFile > $pairedBamFile");
+        
+        system("samtools merge -@ $threadsMax $mergedBamFile $singlesBamFile $pairedBamFile");
+        
+        # Mark duplicates and use mpileup
+        my $cleanedBam = $mappingDir . "/" . $readGroup . ".merged.cleaned.bam";
+        my $sortedBam = $mappingDir . "/" . $readGroup . ".merged.cleaned.sorted.bam";
+        my $markDupsBam = $mappingDir . "/" . $readGroup . ".merged.cleaned.sorted.markDups.bam";
+        my $markDupsMetrics = $mappingDir . "/" . $readGroup . ".merged.cleaned.sorted.markDups.metrics";
+        #my $pileupFile = $mappingDir . "/" . $readGroup . ".mpileup";
+        system("java -Xmx16g -jar ~/bin/picard-tools-1.119/CleanSam.jar I=$mergedBamFile O=$cleanedBam");    
+        system("java -Xmx16g -jar ~/bin/picard-tools-1.119/AddOrReplaceReadGroups.jar I=$cleanedBam O=$sortedBam SORT_ORDER=coordinate RGPL=illumina RGPU=Test RGLB=Lib1 RGID=$readGroup RGSM=$readGroup VALIDATION_STRINGENCY=LENIENT");
+	system("java -Xmx16g -jar ~/bin/picard-tools-1.119/MarkDuplicates.jar I=$sortedBam O=$markDupsBam METRICS_FILE=$markDupsMetrics MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=800 ASSUME_SORTED=true REMOVE_DUPLICATES=false");
+        # system("samtools mpileup $markDupsBam > $pileupFile");
+    
+        print "Stats for $readGroup:\n";
+        system("samtools flagstat $markDupsBam");
+        print "\n\n\n";
+        # All we need to keep is the $markDupsBam file, so get rid of the other sams and bams
+        unlink ($singlesBamFile, $pairedBamFile, $mergedBamFile, $cleanedBam); # Hold on to $sortedBam for now in case we don't actually want to mark duplicates
+        
+    }
+}
+
+
+
+
 
 
 
