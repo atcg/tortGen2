@@ -33,7 +33,7 @@ while (my $line = <$inFH>) {
         my $universalAdapterSeq = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT";
         my $universalAdapterSeqRevComp = revcomp($universalAdapterSeq);
         
-        open(my $outFH, ">", ">$outFile") or die "Couldn't open $outFile for writing: $!\n";
+        open(my $outFH, ">", "$outFile") or die "Couldn't open $outFile for writing: $!\n";
         print $outFH ">$1\_indexed_adapter\n$indexedAdapterSeq\n";
         print $outFH ">$1\_indexed_adapter_revcomp\n$indexedAdapterRevComp\n";
         print $outFH ">$1\_universal_adapter\n$universalAdapterSeq\n";
