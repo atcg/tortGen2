@@ -2,11 +2,10 @@
 
 use strict;
 use warnings;
-use Getopt::Long;
 use Pod::Usage;
+use Getopt::Long;
 use Cwd;
 use Parallel::ForkManager;
-
 
 my $help = 0;
 my $readsDir;
@@ -16,6 +15,7 @@ my $logFile;
 my $threadsMax = 4;
 my $trim;
 my $filter; # If set, it will remove reads that were filtered by CASAVA
+my $join;
 
 
 GetOptions  ("reads=s"         => \$readsDir,
@@ -81,16 +81,18 @@ foreach my $tort (@samples) {
     my $R1OutFileSingles = $trimmomaticDir . "/$tort" . "_R1s_Ns_trim.fastq.gz";
     my $R2OutFileSingles = $trimmomaticDir . "/$tort" . "_R2s_Ns_trim.fastq.gz";
 
-    push (@trimmomaticCommands, "java -Xmx8G -jar ~/bin/trimmomatic/trimmomatic-0.32.jar PE -threads 1 -phred33 $R1File $R2File $R1OutFilePaired $R1OutFileSingles $R2OutFilePaired $R2OutFileSingles ILLUMINACLIP:$adaptersFile:2:30:10 LEADING:5 TRAILING:15 SLIDINGWINDOW:4:20 MINLEN:40");    
+    push (@trimmomaticCommands, "java -Xmx8g -jar /home/evan/bin/Trimmomatic-0.32/trimmomatic-0.32.jar PE -threads 2 -phred33 $R1File $R2File $R1OutFilePaired $R1OutFileSingles $R2OutFilePaired $R2OutFileSingles ILLUMINACLIP:$adaptersFile:2:30:10 LEADING:5 TRAILING:15 SLIDINGWINDOW:4:20 MINLEN:40");    
 }
 print $logFH "Finished generating trimmomatic commands for all tortoises\n";
+
 
 
 # Now run Trimmomatic
 if ($trim) {
     print $logFH "Running all trimmomatic commands\n";
     my $counter = 0;
-    my $forkManager = new Parallel::ForkManager($threadsMax);
+    my $trimThreads = $threadsMax / 2; # We're using two threads for every Trimmomatic process
+    my $trimForkManager = new Parallel::ForkManager($threadsMax);
     foreach my $trimCommand (@trimmomaticCommands) {
         $counter++;
         print $logFH "--------------------------------------------------\n";
@@ -98,17 +100,25 @@ if ($trim) {
         print $logFH $trimCommand . "\n";
         # sleep 10; # Turn this off because we're not actually running the commands so we don't need to be careful about jumbling output
         print "\n";
-        $forkManager->start and next;
+        $trimForkManager->start and next;
         print "\n";
         # system("$trimCommand"); # turn this off for now--starting the process at fastq-join
         print "Finished running the following:\n\t$trimCommand\n\n";
-        $forkManager->finish;
+        $trimForkManager->finish;
     }
-    $forkManager->wait_all_children;
+    $trimForkManager->wait_all_children;
     print $logFH "--------------------------------------------------\n";
     print $logFH "Finished running all trimmomatic commands\n";
     print $logFH "--------------------------------------------------\n\n";
+}
+
+
+# Now run fastq-join to merge overlapping reads
+if ($join) {
     
+
+}
+
 
     print $logFH "Running fastq-join to merge overlapping paired end reads\n";
     foreach my $readGroup (sort keys %sampleNamesHash) {
