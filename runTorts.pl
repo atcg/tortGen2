@@ -10,11 +10,19 @@ my $inFile;
 my $outFile;
 my $catReads;
 my $adapters;
+my $qc;
+my $map;
+my $threads = 32;
+my $clean;
 
 GetOptions  (
-             "help|man" => \$help,
-             "cat"      => \$catReads,
-             "adapters" => \$adapters,
+             "help|man"     => \$help,
+             "cat"          => \$catReads,
+             "adapters"     => \$adapters,
+             "qc"           => \$qc,
+             "map"          => \$map,
+             "clean"        => \$clean,
+             "threads=i"    => \$threads,
              ) || pod2usage(2);
 
 if ($help) {
@@ -41,11 +49,28 @@ if ($adapters) {
 }
 
 
+# Next is adapter and quality trimming, as well as merging overlapping reads
+if ($qc) {
+    print "**** Running Trimmomatic qc, and merging overlapping paired end reads ****\n";
+    system("perl /mnt/Data1/desertTorts/tortGen2/tortReadQC.pl --reads concatenatedReads/ --adapters adapters/ --out qc --filter --trim --join --cat --threads $threads --log tortReadQC.log");
+    print "**** Finished doing the qc and read merging ****\n\n";
+}
 
 
+# Finally, we do read mapping with bwa mem
+if ($map) {
+    print "**** Mapping reads with bwa mem ****\n";
+    system("perl /mnt/Data1/desertTorts/tortGen2/tortReadMapping.pl --threads $threads --reads qc/fastq-join --out mapping");
+    print "**** Finished mapping reads with bwa mem ****\n\n";
+}
 
 
-
+# Now clean up read files that are redundant
+if ($clean) {
+    print "**** Removing the singleton and joined files, as well as all of the Trimmomatic files ****\n";
+    system("perl /mnt/Data1/desertTorts/tortGen2/tortFileCleanup.pl --threads $threads");
+    print "**** Finished removing rendundant read files ****\n\n";
+}
 
 
 
@@ -67,6 +92,10 @@ perl runTorts.pl
  Options:
    -cat         Concatenate all the individual read files into
    -adapters    Make the adapter fasta files
+   -qc          Run Trimmomatic and fastq-join
+   -map         Do read mapping with bwa mem
+   -clean       Remove redundant read files
+   -threads     Number of threads to use
 
 =head1 DESCRIPTION
 

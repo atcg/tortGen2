@@ -13,9 +13,10 @@ my $adaptersDir;
 my $outDir;
 my $logFile;
 my $threadsMax = 4;
-my $trim;
+my $trim; # If set, will run Trimmomatic
 my $filter; # If set, it will remove reads that were filtered by CASAVA
-my $join;
+my $join; # If set, will run fastq-join to merge overlapping paired end reads
+my $cat; # If set, will combine the singleton and joined reads into a single file
 
 
 GetOptions  ("reads=s"         => \$readsDir,
@@ -23,8 +24,10 @@ GetOptions  ("reads=s"         => \$readsDir,
              "out=s"           => \$outDir,
              "log=s"           => \$logFile,
              "threads=i"       => \$threadsMax,
-             "trim"            => \$trim,
              "filter"          => \$filter,
+             "trim"            => \$trim,
+             "join"            => \$join,
+             "cat"             => \$cat,
              "help|man" => \$help) || pod2usage(2);
 
 if (!$readsDir or !$adaptersDir or !$outDir or $help) {
@@ -147,19 +150,25 @@ if ($join) {
 
 
 # Now combine all the singleton and joined reads into a single-end file
-print $logFH "--------------------------------------------------\n";
-print $logFH "Combining singleton and joined reads into single-end files\n";
-print $logFH "--------------------------------------------------\n";
-my $catForkManager = Parallel::ForkManager->new($threadsMax);
-foreach my $tort (@samples) {
-    my $singleEndsFile = "$fqjDir/$tort" . "_Ns_trim_fqj_joinedAndSingles.fastq.gz";
-    my $catCommand = "cat " . "$fqjDir/$tort" . "_Ns_trim_fqj.join.fastq.gz " . "$trimmomaticDir/$tort" . "_R1s_Ns_trim.fastq.gz " . "$trimmomaticDir/$tort" . "_R2s_Ns_trim.fastq.gz > $singleEndsFile";
-    print "Running the following concatenation command:\n$catCommand\n";
-    $catForkManager->start and next;
-    system($catCommand);
-    $catForkManager->finish;
+if ($cat) {
+    print $logFH "--------------------------------------------------\n";
+    print $logFH "Combining singleton and joined reads into single-end files\n";
+    print $logFH "--------------------------------------------------\n";
+    my $catForkManager = Parallel::ForkManager->new($threadsMax);
+    foreach my $tort (@samples) {
+        my $singleEndsFile = "$fqjDir/$tort" . "_Ns_trim_fqj_joinedAndSingles.fastq.gz";
+        my $catCommand = "cat " . "$fqjDir/$tort" . "_Ns_trim_fqj.join.fastq.gz " . "$trimmomaticDir/$tort" . "_R1s_Ns_trim.fastq.gz " . "$trimmomaticDir/$tort" . "_R2s_Ns_trim.fastq.gz > $singleEndsFile";
+        print "Running the following concatenation command:\n$catCommand\n";
+        $catForkManager->start and next;
+        system($catCommand);
+        $catForkManager->finish;
+    }
+    $catForkManager->wait_all_children;
+    print $logFH "--------------------------------------------------\n";
+    print $logFH "Finished combining singleton and joined reads files\n";
+    print $logFH "--------------------------------------------------\n";
 }
-$catForkManager->wait_all_children;
+
 
 
 
@@ -187,10 +196,12 @@ perl tortReadQC.pl --reads <file> --adapters <file> --out <outputDirectory> --lo
    -out=s             Name of output directory (it will be created)
    -log=s             Name of logfile to print output (you will probably also want
                       to capture STDERR manually)
+   -filter
    -trim              (flag) Perform read trimming using Trimmomatic and join with fastq-join
+   -join              Run fastq-join
+   -cat               Combine the singleton and joined read files into a single file
    -threads=i         Threads to use for multithreading (default=4)
-   -reference=s       Reference to use for mapping (default to /mnt/Data4/genomes/Galapagos.fasta)
-   -help|man        Prints out documentation
+   -help|man          Prints out documentation
 
 
 =head1 DESCRIPTION
