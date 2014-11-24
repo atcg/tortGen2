@@ -51,8 +51,8 @@ foreach my $tort (@samples) {
     my $markDupsBam = $mappingDir . "/" . $tort . ".merged.cleaned.sorted.markDups.bam";
     my $markDupsMetrics = $mappingDir . "/" . $tort . ".merged.cleaned.sorted.markDups.metrics";
     system("java -Xmx16g -jar /home/evan/bin/picard-tools-1.125/picard.jar CleanSam I=$mergedBamFile O=$cleanedBam");    
-    system("java -Xmx16g -jar /home/evan/bin/picard-tools-1.125/picard.jar AddOrReplaceReadGroups.jar I=$cleanedBam O=$sortedBam SORT_ORDER=coordinate RGPL=illumina RGPU=Test RGLB=Lib1 RGID=$tort RGSM=$tort VALIDATION_STRINGENCY=LENIENT");
-    system("java -Xmx16g -jar /home/evan/bin/picard-tools-1.125/picard.jar MarkDuplicates.jar I=$sortedBam O=$markDupsBam METRICS_FILE=$markDupsMetrics MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=800 ASSUME_SORTED=true REMOVE_DUPLICATES=false");
+    system("java -Xmx16g -jar /home/evan/bin/picard-tools-1.125/picard.jar AddOrReplaceReadGroups I=$cleanedBam O=$sortedBam SORT_ORDER=coordinate RGPL=illumina RGPU=Test RGLB=Lib1 RGID=$tort RGSM=$tort VALIDATION_STRINGENCY=LENIENT");
+    system("java -Xmx16g -jar /home/evan/bin/picard-tools-1.125/picard.jar MarkDuplicates I=$sortedBam O=$markDupsBam METRICS_FILE=$markDupsMetrics MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=800 ASSUME_SORTED=true REMOVE_DUPLICATES=false");
     # system("samtools mpileup $markDupsBam > $pileupFile");
 
     print "Stats for $tort:\n";
