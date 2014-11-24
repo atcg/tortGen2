@@ -32,7 +32,7 @@ my $mappingDir = $outDir;
 unless (-d $mappingDir) {
     mkdir $mappingDir;
 }
-my $mapForkManager = Parallel::ForkManager($threadsMax/4);
+my $mapForkManager = Parallel::ForkManager->new($threadsMax/4);
 foreach my $tort (@samples) {
     $mapForkManager->start and next;
     my $singlesBamFile = $mappingDir . "/" . $tort . ".singlesAndJoined.bam";
