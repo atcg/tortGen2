@@ -66,8 +66,8 @@ if ($filter) {
     foreach my $tort (@samples) {
         my $R1File = $readsDir . $tort . "_R1.fastq.gz";
         my $R2File = $readsDir . $tort . "_R2.fastq.gz";
-        my $R1outFile = $readsDir . $tort . "R1_Ns.fastq.gz";
-        my $R2outFile = $readsDir . $tort . "R2_Ns.fastq.gz";
+        my $R1outFile = $readsDir . $tort . "_R1_Ns.fastq.gz";
+        my $R2outFile = $readsDir . $tort . "_R2_Ns.fastq.gz";
         system("gunzip -c $R1File | fastq_illumina_filter -vN | gzip > $R1outFile");
         system("gunzip -c $R2File | fastq_illumina_filter -vN | gzip > $R2outFile");
     }
