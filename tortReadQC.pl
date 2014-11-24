@@ -63,14 +63,18 @@ if ($filter) {
     print $logFH "--------------------------------------------------\n";
     print $logFH "Removing reads that were filtered by CASAVA\n";
     print $logFH "--------------------------------------------------\n";
+    my $filterForkManager = Parallel::ForkManager->new($threadsMax);
     foreach my $tort (@samples) {
+        $filterForkManager->start and next;
         my $R1File = $readsDir . $tort . "_R1.fastq.gz";
         my $R2File = $readsDir . $tort . "_R2.fastq.gz";
         my $R1outFile = $readsDir . $tort . "_R1_Ns.fastq.gz";
         my $R2outFile = $readsDir . $tort . "_R2_Ns.fastq.gz";
         system("gunzip -c $R1File | fastq_illumina_filter -vN | gzip > $R1outFile");
         system("gunzip -c $R2File | fastq_illumina_filter -vN | gzip > $R2outFile");
+        $filterForkManager->finish;
     }
+    $filterForkManager->wait_all_children;
     print $logFH "--------------------------------------------------\n";
     print $logFH "Finished removing reads that were filtered by CASAVA\n\n";
     print $logFH "--------------------------------------------------\n";
