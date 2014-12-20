@@ -24,8 +24,8 @@ double interPWP(int tortNum, int comparisonTortNum, int locWeighting, double maj
 
 
 int main(int argc, const char * argv[]) {
-    if (argc != 3) {
-        cout << "You must supply two arguments to this program: 1) the binary readcounts file basename, and 2) and integer showing how many consituent files there are. The filenames should look like <basename>.nmil.binary8bitunsigned, where n is the number of the file." << endl;
+    if (argc != 4) {
+        cout << "You must supply three arguments to this program: 1) the binary readcounts file basename, 2) and integer showing how many consituent files there are, and 3) the name of the output file name. The input filenames should look like <basename>.nmil.binary8bitunsigned, where n is the number of the file." << endl;
         return 1;
     }
     
@@ -97,8 +97,9 @@ int main(int argc, const char * argv[]) {
     }
     
     
-    ofstream outFile;
-    outFile.open("pwpEstimate.txt");
+    ofstream outFile(argv[3]);
+    //outFile.open("pwpEstimate.txt");
+    
     if (outFile.is_open()) {
         for (int tort = 0; tort < 272; tort++) {
             for (int comparisonTort = 0; comparisonTort <= tort; comparisonTort++) {
